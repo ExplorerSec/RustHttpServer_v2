@@ -52,24 +52,34 @@ impl Server {
 
     async fn handle_connection(
         mut stream: TcpStream,
-        db: Arc<Mutex<DataBase>>,
+        _db: Arc<Mutex<DataBase>>,
     ) -> Result<(), Box<SyncError>> {
         let mut tmpbuff = [0u8; 2048];
-        let n = stream.read(&mut tmpbuff).await?;
-        #[cfg(debug_assertions)]
-        println!("http package size:{}", n);
-        // 解析 HTTP 请求
-        let mut headers = [httparse::EMPTY_HEADER; 16];
-        let mut req = httparse::Request::new(&mut headers);
-        let _res = req.parse(&mut tmpbuff)?;
 
-        // 接下来是 中间件（权限认证） 和 业务逻辑
-        // 中间件
-        if auth(&mut stream, &req).await? {
-            // 业务逻辑-路由
-            route(&mut stream, &req).await?;
+        match stream.read(&mut tmpbuff).await {
+            Ok(0) => {
+                // 这是对方主动关闭了连接，不需要进一步解析
+            }
+            Ok(n) => {
+                #[cfg(debug_assertions)]
+                println!("http package size:{}", n);
+                // 解析 HTTP 请求
+                let mut headers = [httparse::EMPTY_HEADER; 16];
+                let mut req = httparse::Request::new(&mut headers);
+                let _res = req.parse(&mut tmpbuff)?;
+
+                // 接下来是 中间件（权限认证） 和 业务逻辑
+                // 中间件
+                if auth(&mut stream, &req).await? {
+                    // 业务逻辑-路由
+                    route(&mut stream, &req).await?;
+                }
+                stream.shutdown().await?;
+            }
+            Err(e) => {
+                return Err(Box::new(e));
+            }
         }
-        stream.shutdown().await?;
         Ok(())
     }
 }
