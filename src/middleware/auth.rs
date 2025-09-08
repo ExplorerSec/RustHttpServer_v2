@@ -4,6 +4,8 @@ use tokio::{io::AsyncWriteExt, net::TcpStream};
 use crate::server::SyncError;
 
 pub async fn auth(stream: &mut TcpStream, req: &Request<'_, '_>) -> Result<bool, Box<SyncError>> {
+    Ok(true)
+    /*
     println!("---> Auth: {}", req.path.unwrap());
     if req.path == Some("/") {
         Ok(true)
@@ -22,5 +24,5 @@ pub async fn auth(stream: &mut TcpStream, req: &Request<'_, '_>) -> Result<bool,
         stream.write(response.as_bytes()).await?;
         stream.flush().await?;
         Ok(false)
-    }
+    }*/
 }

@@ -34,6 +34,8 @@ impl Server {
     }
 
     pub async fn run(&mut self) -> Result<(), Box<SyncError>> {
+        let env_path = std::env::current_dir().expect("无法获取程序运行环境路径");
+        println!("Server running Env: {}", env_path.display());
         println!("Server running on http://{}", self.listener.local_addr()?);
         loop {
             let (stream, client_addr) = self.listener.accept().await?;
