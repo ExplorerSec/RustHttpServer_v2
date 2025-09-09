@@ -1,10 +1,11 @@
 mod server;
 use server::SyncError;
 
-mod handler;
 mod router;
 
 mod middleware;
+
+mod protocol;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<SyncError>> {

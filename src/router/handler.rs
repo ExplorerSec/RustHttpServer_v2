@@ -1,9 +1,8 @@
-mod prelude;
+use bytes::BytesMut;
+use crate::router::prelude::*;
 use std::ffi::OsStr;
 
-use prelude::*;
-
-pub use prelude::Handler;
+pub struct Handler; 
 
 impl Handler {
     pub async fn f1(stream: &mut TcpStream, _req: &Request<'_, '_>) -> Result<(), Box<SyncError>> {
@@ -63,15 +62,55 @@ impl Handler {
         Ok(())
     }
 
-    pub async fn auth(stream: &mut TcpStream, req: &Request<'_, '_>) -> Result<(), Box<SyncError>> {
+    pub async fn login(
+        stream: &mut TcpStream,
+        req: &Request<'_, '_>,
+        body: BytesMut,
+    ) -> Result<(), Box<SyncError>> {
         match req.method.unwrap_or_default() {
-            "GET" => {}
-            "POST" => {}
-            _ => {
-                return Self::f_404(stream, req).await;
+            // "GET" => {}
+            "POST" => {
+                if let Ok(s) = str::from_utf8(&body) {
+                    println!("post: {}", s);
+                    let post = s.split('&').collect::<Vec<_>>();
+                    // 实际认证使用另一个简易redis项目, 这里放简单示例
+                    if post.len() == 3 {
+                        println!("{:?}  {:?}",(&post[0][5..]).as_bytes(),&post[1][9..].as_bytes());
+                        if &post[0][5..] == "usr" && &post[1][9..] == "pwd" {
+                            println!("验证通过");
+                            let notice = "success";
+                            let response = format!(
+                                "HTTP/1.1 200 OK\r\n\
+                                Content-Type: text/plain\r\n\
+                                Set-Cookie: key=\"123456\"; path=/\r\n\
+                                Content-Length: {}\r\n\
+                                Connection: close\r\n\r\n{}",
+                                notice.len(),
+                                notice
+                            );
+                            stream.write_all(response.as_bytes()).await?;
+                            stream.flush().await?;
+                            stream.shutdown().await?;
+                            return Ok(());
+                        }
+                    }
+                }
+                let notice = "failed";
+                let response = format!(
+                    "HTTP/1.1 200 OK\r\n\
+                    Content-Type: text/plain\r\n\
+                    Content-Length: {}\r\n\
+                    Connection: close\r\n\r\n{}",
+                    notice.len(),
+                    notice
+                );
+                stream.write_all(response.as_bytes()).await?;
+                stream.flush().await?;
+                stream.shutdown().await?;
+                return Ok(());
             }
+            _ => Self::f_404(stream, req).await,
         }
-        Ok(())
     }
 
     pub async fn file(stream: &mut TcpStream, req: &Request<'_, '_>) -> Result<(), Box<SyncError>> {

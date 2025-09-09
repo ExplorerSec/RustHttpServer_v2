@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>一站式</title>
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+        font-family: Arial, sans-serif;
+        color: white; /* 设置文字颜色为白色 */
+        background-image: url('XidianBackground.png'); /* 设置背景图片 background-position: center;*/
+        background-repeat: no-repeat;
+        background-size: 100%;
+        background-attachment: fixed;
+        
+    }
+    .container {
+    
+    display: flex; /* 使用 Flexbox 布局 */
+    justify-content: center; /* 水平居中 */
+    align-items: center; /* 垂直居中 */
+    height: 85vh; /* 设置容器高度为视口高度 */
+    }
+    h1 {
+        font-family: Arial, sans-serif;
+        font-size: 7rem;
+        animation: fadeInUp 2.5s ease forwards; /* 设置标题浮现动画 */
+
+    }
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(50px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    .register-btn {
+    margin-top: 20px;
+    padding: 10px 20px;
+    background-color: transparent; /* 透明背景 */
+    color: white; /* 白色字体 */
+    border: 2px solid white; /* 带白色边框 */
+    border-radius: 5px;
+    font-size: 2rem;
+    cursor: pointer;
+    transition: background-color 0.3s, color 0.3s; /* 添加过渡效果 */
+    position: relative;
+    }
+    .register-btn .icon {
+    position: absolute;
+    top: 50%;
+    left: 10px; /* 调整图标与按钮文字之间的距离 */
+    transform: translateY(-50%);
+    width: 20px; /* 调整图标的尺寸 */
+    height: 20px;
+    background-image: url('Arrows.png'); /* 设置图标的背景图像路径 */
+    background-size: cover; /* 设置背景图像大小，保持比例 */
+    }
+
+    .register-btn:hover {
+    background-color: white; /* 鼠标移动到按钮时，背景变为白色 */
+    color: black; /* 鼠标移动到按钮时，字体颜色变为黑色 */
+    }
+    .second-container {
+    position: absolute;
+    right: 200px;
+    bottom: 200px;
+    }
+    .gradient-text {
+    background: linear-gradient(to bottom, #42d392, #647eff);
+    -background-clip: text; /* 设置背景裁剪为文本 */
+    -text-fill-color: transparent; /* 设置文本颜色为透明，以便显示渐变色 */
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.2); /* 添加光晕效果 */
+    }
+
+</style>
+</head>
+<body>
+
+<div class="container">
+    <h1 class="gradient-text">学科竞赛一站式平台</h1>
+</div>
+<div class="second-container">
+    <button id="registerBtn" class="register-btn">. LOG IN<span class="icon"></span></button>
+</div>
+
+<script>
+    // 获取注册按钮的元素
+    var registerBtn = document.getElementById('registerBtn');
+
+    // 点击注册按钮时跳转到另一个页面
+    registerBtn.addEventListener('click', function() {
+        window.location.href = 'LoginInterface.html'; // 将 'another-page.html' 替换为目标页面的 URL
+    });
+</script>
+
+</body>
+</html>

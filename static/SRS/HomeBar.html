@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Website with Sidebar and Topbar</title>
+    <style>
+        /* 顶栏样式 */
+        .topbar {
+            height: 40px;
+            background-image: url('XidianBackground.png');
+            background-size: cover;
+            color: white; /* 顶栏的文本颜色 */
+            font-size: 1.5rem;
+
+            position: relative; /* 设置为相对定位 */
+            z-index: 1; /* 设置较高的层叠顺序 */
+
+            padding: 10px; /* 顶栏的内边距 */
+            display: flex; /* 使用 Flexbox 布局 */
+            align-items: center; /* 垂直居中 */
+            justify-content: flex-end; /* 右对齐 */
+
+        }
+
+        /* 鼠标悬停时的样式 */
+        .topbar:hover .popup {
+            
+            display: block; /* 显示小框 */
+        }
+
+        /* 弹出小框的样式 */
+        .popup {
+        display: none; /* 默认隐藏小框 */
+        position: absolute; /* 绝对定位 */
+        border: 2px solid #ddd; /* 白色边框 */
+        border-radius: 3px;
+        background-color: #333; /* 背景颜色 */
+        font-size: 1rem;
+        padding: 10px; /* 内边距 */
+        top: 100%; /* 位置相对于顶栏下方 */
+        right: 10px; /* 位置靠右 */
+        z-index: 2; /* 设置较小的层叠顺序 */
+        }   
+
+        /* 侧边栏样式 */
+        .sidebar {
+            background-image: url('BellTower.jpg');
+            background-size: cover;
+            width: 200px; /* 侧边栏的宽度 */
+            height: 100%; /* 侧边栏的高度 */
+            background-color: #333; /* 侧边栏的背景颜色 */
+            position: fixed; /* 固定定位，保持在页面左侧 */
+            top: 60px; /* 距离页面顶部的距离，为了腾出顶栏的高度 */
+            left: 0; /* 距离页面左侧的距离 */
+            overflow-y: auto; /* 如果内容溢出，显示垂直滚动条 */
+            
+        }
+
+        /* 模块样式 */
+        .sidebar-module {
+            padding: 20px; /* 模块的内边距 */
+            color: white; /* 模块的文本颜色 */
+            transition: transform 0.3s, box-shadow 0.3s; /* 添加过渡效果 */
+            
+        }
+        /*当前模块样式*/
+        .sidebar-module.large {
+            padding: 20px; /* 模块的内边距 */
+            color: #ffd700; /* 模块的文本颜色 */
+            transition: transform 0.3s, box-shadow 0.3s; /* 添加过渡效果 */
+            transform: scale(1.1); /* 放大模块 */
+            box-shadow: 0 0 15px rgba(0, 0, 0, 1.5); /* 添加阴影 */
+             /* border: 2px solid white;带白色边框 */
+            border-radius: 5px;
+        }
+
+        /* 当鼠标悬停在模块上时 */
+        .sidebar-module:hover {
+            transform: scale(1.1); /* 放大模块 */
+            box-shadow: 0 0 15px rgba(0, 0, 0, 1.5); /* 添加阴影 */
+        }
+
+        
+
+        /* 示例样式 */
+        body {
+            margin: 0; /* 去除页面的默认边距 */
+            font-family: Arial, sans-serif; /* 设置页面字体 */
+        }
+        /* 余下空间 */
+        
+        .main-content {
+            
+            /* 设置背景图片并填充剩余空间 */
+            background-image: url('StadiumBlack.png');
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-attachment: fixed;
+            height: 680px;
+        }
+        /* 招募栏框样式 */
+        .recruitment-board {
+            position: absolute; /* 设置绝对定位 */
+            top: 100px; /* 设置顶部距离 */
+            left: 250px; /* 设置左侧距离 */
+            width: 370px; /* 设置宽度 */
+            height: 400px; /* 设置高度 */
+            border: 3px solid white; /* 设置外层白色边框 */
+            border-radius: 10px;
+            overflow: auto; /* 允许内容溢出时出现滚动条 */
+            padding: 10px; /* 设置内边距 */
+        }
+        
+        /* 滚动内容样式 */
+        .scrollable-content {
+            color: white;
+            border: 2px solid white; /* 设置内层白色边框 */
+            border-radius: 10px;
+            padding: 10px; /* 设置内边距 */
+        }
+        h2 {
+            color: white;
+            text-align: center;
+            font-size: 2rem;
+
+        }
+    </style>
+</head>
+<body>
+    
+    <!-- 顶栏 -->
+    <div class="topbar">
+        <!-- 用户昵称 -->
+        <span>Welcome, 小明！</span>
+        
+        <!-- 弹出框 -->
+        <div class="popup">
+            <a href="#" style="color: rgb(30, 255, 0);">完善信息</a>
+            <a href="SRS_HomePage.html" style="color: rgb(255, 0, 0);">退出</a>
+        </div>
+    </div>
+    
+        <!-- 侧边栏 -->
+    <div class="sidebar">
+        <!-- 模块 1 -->
+        <a href="link1.html" style="color: rgba(0, 0, 0, 0);">
+            <div class="sidebar-module large" id="module1">
+              <h2>> 首页</h2>
+              <p>获悉最新比赛信息！</p>  
+            </div>
+        </a>
+        
+        <!-- 模块 2 -->
+        <a href="link1.html" style="color: rgba(0, 0, 0, 0);" >
+            <div class="sidebar-module" id="module2">
+               <h2>组队报名</h2>
+               <p>填写报名信息！</p>  
+            </div>
+        </a>
+
+        <!-- 模块 3 -->
+        <a href="link1.html" style="color: rgba(0, 0, 0, 0);" >
+            <div class="sidebar-module" id="module3">
+               <h2>交卷系统</h2>
+               <p>别等到最后一刻！</p>  
+            </div>
+        </a>
+
+        <!-- 模块 4 -->
+        <a href="link1.html" style="color: rgba(0, 0, 0, 0);" >
+            <div class="sidebar-module" id="module4">
+               <h2>成就一览</h2>
+               <p>综测保研加分凭证！</p> 
+            </div>
+        </a>
+        
+        
+    </div>
+    <div class="main-content">
+        <div class="recruitment-board">
+            <h2>招募公告</h2>
+            <div class="scrollable-content">
+                <!-- 这里放置您的消息内容 -->
+                <p>队伍102</p>
+                <p>缺#建模手</p>
+                <p>联系方式：QQ：1223456789</p>
+                <!-- 更多消息 -->
+            </div>
+            \<br>
+            <div class="scrollable-content">
+                <!-- 这里放置您的消息内容 -->
+                <p>队伍323</p>
+                <p>缺#建模手#编程手</p>
+                <p>联系方式：QQ：1234822789</p>
+                <!-- 更多消息 -->
+            </div>
+            \<br>
+            <div class="scrollable-content">
+                <!-- 这里放置您的消息内容 -->
+                <p>队伍443</p>
+                <p>缺#论文手</p>
+                <p>联系方式：QQ：3433456789</p>
+                <!-- 更多消息 -->
+            </div>
+            \<br>
+            <div class="scrollable-content">
+                <!-- 这里放置您的消息内容 -->
+                <p>队伍525</p>
+                <p>缺#建模手</p>
+                <p>联系方式：QQ：9343456789</p>
+                <!-- 更多消息 -->
+            </div>
+            \<br>
+          </div>
+          
+    </div>
+</body>
+</html>

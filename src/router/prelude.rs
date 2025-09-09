@@ -7,4 +7,3 @@ pub(super) use tokio::{
 
 pub(super) use crate::server::SyncError;
 
-pub struct Handler;

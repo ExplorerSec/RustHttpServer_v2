@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use httparse::Status;
 use tokio::{
     io::{AsyncReadExt, AsyncWriteExt},
     net::{TcpListener, TcpStream},
@@ -54,7 +55,7 @@ impl Server {
         mut stream: TcpStream,
         _db: Arc<Mutex<DataBase>>,
     ) -> Result<(), Box<SyncError>> {
-        let mut tmpbuff = [0u8; 2048];
+        let mut tmpbuff = [0u8; 4096]; // 认为数据包大小不超过 4096
 
         match stream.read(&mut tmpbuff).await {
             Ok(0) => {
@@ -64,15 +65,16 @@ impl Server {
                 #[cfg(debug_assertions)]
                 println!("http package size:{}", n);
                 // 解析 HTTP 请求
-                let mut headers = [httparse::EMPTY_HEADER; 16];
-                let mut req = httparse::Request::new(&mut headers);
-                let _res = req.parse(&mut tmpbuff)?;
-
-                // 接下来是 中间件（权限认证） 和 业务逻辑
-                // 中间件
-                if auth(&mut stream, &req).await? {
-                    // 业务逻辑-路由
-                    route(&mut stream, &req).await?;
+                let mut headers = [httparse::EMPTY_HEADER; 24];
+                let mut req_headers = httparse::Request::new(&mut headers);
+                if let Status::Complete(offset) = req_headers.parse(&tmpbuff)? {
+                    let body = bytes::BytesMut::from(&tmpbuff[offset..n]);
+                    // 接下来是 中间件（权限认证） 和 业务逻辑
+                    // 中间件
+                    if auth(&mut stream, &req_headers).await? {
+                        // 业务逻辑-路由
+                        route(&mut stream, &req_headers, body).await?;
+                    }
                 }
                 stream.shutdown().await?;
             }
