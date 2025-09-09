@@ -4,32 +4,34 @@ use httparse::Status;
 use tokio::{
     io::{AsyncReadExt, AsyncWriteExt},
     net::{TcpListener, TcpStream},
-    sync::Mutex,
+    //sync::Mutex,
 };
 
 pub(crate) type SyncError = dyn std::error::Error + Send + Sync;
 
-use crate::{middleware::auth::auth, router::route};
+use crate::{middleware::auth::auth, protocol::Redis, router::route};
 
-struct DataBase;
+/* struct DataBase;
 
 impl DataBase {
     pub fn new() -> DataBase {
         DataBase
     }
-}
+}*/
 
 pub struct Server {
     listener: TcpListener,
-    inner_db: Arc<Mutex<DataBase>>,
+    //inner_db: Arc<Mutex<DataBase>>,
+    outer_db: Arc<Redis>,
 }
 
 impl Server {
-    pub async fn new(addr: &str) -> Result<Self, Box<SyncError>> {
-        let listener = TcpListener::bind(addr).await?;
+    pub async fn new(listen_addr: &str, db_addr: &str) -> Result<Self, Box<SyncError>> {
+        let listener = TcpListener::bind(listen_addr).await?;
         let server = Server {
-            listener: listener,
-            inner_db: Arc::new(Mutex::new(DataBase::new())),
+            listener,
+            //inner_db: Arc::new(Mutex::new(DataBase::new())),
+            outer_db: Arc::new(Redis::new(db_addr)?),
         };
         Ok(server)
     }
@@ -38,9 +40,11 @@ impl Server {
         let env_path = std::env::current_dir().expect("无法获取程序运行环境路径");
         println!("Server running Env: {}", env_path.display());
         println!("Server running on http://{}", self.listener.local_addr()?);
+        println!("Server using outer_db: {}", self.outer_db.addr());
         loop {
             let (stream, client_addr) = self.listener.accept().await?;
-            let db = self.inner_db.clone();
+            //let db = self.inner_db.clone();
+            let db = self.outer_db.clone();
             let _ = tokio::spawn(async move {
                 if let Err(err) = Self::handle_connection(stream, db).await {
                     eprintln!("Error to handle connection from {}:{}", client_addr, err);
@@ -53,7 +57,7 @@ impl Server {
 
     async fn handle_connection(
         mut stream: TcpStream,
-        _db: Arc<Mutex<DataBase>>,
+        db: Arc<Redis>,
     ) -> Result<(), Box<SyncError>> {
         let mut tmpbuff = [0u8; 4096]; // 认为数据包大小不超过 4096
 
@@ -71,9 +75,9 @@ impl Server {
                     let body = bytes::BytesMut::from(&tmpbuff[offset..n]);
                     // 接下来是 中间件（权限认证） 和 业务逻辑
                     // 中间件
-                    if auth(&mut stream, &req_headers).await? {
+                    if auth(&mut stream, db.clone(), &req_headers).await? {
                         // 业务逻辑-路由
-                        route(&mut stream, &req_headers, body).await?;
+                        route(&mut stream, db, &req_headers, body).await?;
                     }
                 }
                 stream.shutdown().await?;

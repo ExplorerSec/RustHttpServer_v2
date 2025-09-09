@@ -1,9 +1,15 @@
+use std::sync::Arc;
+
 use httparse::Request;
 use tokio::{io::AsyncWriteExt, net::TcpStream};
 
-use crate::server::SyncError;
+use crate::{protocol::Redis, server::SyncError};
 
-pub async fn auth(stream: &mut TcpStream, req: &Request<'_, '_>) -> Result<bool, Box<SyncError>> {
+pub async fn auth(
+    stream: &mut TcpStream,
+    db: Arc<Redis>,
+    req: &Request<'_, '_>,
+) -> Result<bool, Box<SyncError>> {
     // SRS 目录不需要特殊权限就可以进入
     let path = req.path.unwrap();
     if path.to_uppercase().starts_with("/SRS") && !path.contains("..") {
@@ -20,7 +26,11 @@ pub async fn auth(stream: &mut TcpStream, req: &Request<'_, '_>) -> Result<bool,
         let cookies = cookie::Cookie::split_parse(cookie_raw);
         for cookie in cookies {
             let cookie = cookie?;
-            if cookie.name() == "key" || cookie.value() == "123456" {
+            if cookie.name() == "key"
+                && db
+                    .judge_session_key(cookie.value_trimmed(), stream.peer_addr()?.ip().to_string())
+                    .await?
+            {
                 return Ok(true);
             }
         }
@@ -37,7 +47,7 @@ pub async fn auth(stream: &mut TcpStream, req: &Request<'_, '_>) -> Result<bool,
         body
     );
 
-    stream.write(response.as_bytes()).await?;
+    stream.write_all(response.as_bytes()).await?;
     stream.flush().await?;
     Ok(false)
 }

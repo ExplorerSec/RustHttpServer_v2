@@ -9,9 +9,10 @@ mod protocol;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<SyncError>> {
-    let addr = "127.0.0.1:25823";
-    let mut server = server::Server::new(addr).await?;
-    let _ = server.run().await;
+    let listen_addr = "127.0.0.1:25823";
+    let db_addr = "127.0.0.1:6379";
+    let mut server = server::Server::new(listen_addr, db_addr).await?;
+    server.run().await?;
 
     Ok(())
 }

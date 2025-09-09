@@ -1,7 +1,7 @@
 pub(super) use httparse::Request;
 pub(super) use tokio::{
     fs::File,
-    io::{AsyncReadExt, AsyncWriteExt},
+    io::AsyncWriteExt,
     net::TcpStream,
 };
 

@@ -1,6 +1,6 @@
 [package]
 name = "RustHttpServer_v2"
-version = "0.1.4"
+version = "0.1.5"
 edition = "2024"
 
 [dependencies]
@@ -11,4 +11,5 @@ httparse = "1.10.1"
 percent-encoding = "2.3.2"
 sanitize-filename = "0.6.0"
 cookie = "0.18.1"
+uuid = { version = "1.18.1",features = ["v4"] }
 

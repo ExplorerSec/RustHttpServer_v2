@@ -1,8 +1,8 @@
+use crate::{protocol::Redis, router::prelude::*};
 use bytes::BytesMut;
-use crate::router::prelude::*;
-use std::ffi::OsStr;
+use std::{ffi::OsStr, sync::Arc};
 
-pub struct Handler; 
+pub struct Handler;
 
 impl Handler {
     pub async fn f1(stream: &mut TcpStream, _req: &Request<'_, '_>) -> Result<(), Box<SyncError>> {
@@ -64,6 +64,7 @@ impl Handler {
 
     pub async fn login(
         stream: &mut TcpStream,
+        db: Arc<Redis>,
         req: &Request<'_, '_>,
         body: BytesMut,
     ) -> Result<(), Box<SyncError>> {
@@ -74,15 +75,29 @@ impl Handler {
                     let post = s.split('&').collect::<Vec<_>>();
                     // 实际认证使用另一个简易redis项目, 这里放简单示例
                     if post.len() == 3 {
-                        if &post[0][5..] == "usr" && &post[1][9..] == "pwd" {
-                            println!("验证通过,来自 {}",stream.peer_addr()?);
+                        //if &post[0][5..] == "usr" && &post[1][9..] == "pwd" {
+                        if db.test_user_password(&post[0][5..], &post[1][9..]).await? {
+                            let peer_addr = stream.peer_addr()?;
+                            println!("验证通过,来自 {}", peer_addr);
+                            let mut key;
+                            loop {
+                                key = gen_uuid();
+                                if db.unique_key(&key).await? {
+                                    db.set_session_key(&key, peer_addr.ip().to_string(), 3600 * 24)
+                                        .await?;
+                                    #[cfg(debug_assertions)]
+                                    println!("  Session-{}",key);
+                                    break;
+                                }
+                            }
                             let notice = "success";
                             let response = format!(
                                 "HTTP/1.1 200 OK\r\n\
                                 Content-Type: text/plain\r\n\
-                                Set-Cookie: key=\"123456\"; path=/\r\n\
+                                Set-Cookie: key=\"{}\"; path=/\r\n\
                                 Content-Length: {}\r\n\
                                 Connection: close\r\n\r\n{}",
+                                key,
                                 notice.len(),
                                 notice
                             );
@@ -105,7 +120,7 @@ impl Handler {
                 stream.write_all(response.as_bytes()).await?;
                 stream.flush().await?;
                 stream.shutdown().await?;
-                return Ok(());
+                Ok(())
             }
             _ => Self::f_404(stream, req).await,
         }
@@ -159,7 +174,7 @@ impl Handler {
             body.len(),
             body
         );
-        stream.write(response.as_bytes()).await?;
+        stream.write_all(response.as_bytes()).await?;
         stream.flush().await?;
         stream.shutdown().await?;
         Ok(())
@@ -208,6 +223,10 @@ fn guess_file_mime(file_path: &std::path::Path) -> &str {
         "xml" => "application/xml",
         _ => "application/octet-stream",
     }
+}
+
+fn gen_uuid() -> String {
+    uuid::Uuid::new_v4().to_string()
 }
 
 #[cfg(test)]

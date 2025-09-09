@@ -1,13 +1,16 @@
 mod handler;
+use std::sync::Arc;
+
 use handler::Handler;
 mod prelude;
-use crate::server::SyncError;
+use crate::{protocol::Redis, server::SyncError};
 use bytes::BytesMut;
 use httparse::Request;
 use tokio::net::TcpStream;
 
 pub async fn route(
     stream: &mut TcpStream,
+    db: Arc<Redis>,
     req_headers: &Request<'_, '_>,
     body: BytesMut,
 ) -> Result<(), Box<SyncError>> {
@@ -16,7 +19,7 @@ pub async fn route(
         Some("/method") => Handler::echo_method(stream, req_headers).await?,
         Some("/ip") => Handler::echo_ip(stream, req_headers).await?,
         Some("/404") => Handler::f_404(stream, req_headers).await?,
-        Some("/srs/login") => Handler::login(stream, req_headers, body).await?,
+        Some("/srs/login") => Handler::login(stream, db, req_headers, body).await?,
         _ => Handler::file(stream, req_headers).await?,
     };
 
