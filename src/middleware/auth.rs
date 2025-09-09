@@ -6,7 +6,7 @@ use crate::server::SyncError;
 pub async fn auth(stream: &mut TcpStream, req: &Request<'_, '_>) -> Result<bool, Box<SyncError>> {
     // SRS 目录不需要特殊权限就可以进入
     let path = req.path.unwrap();
-    if path.to_uppercase().starts_with("/SRS") && !path.contains(".."){
+    if path.to_uppercase().starts_with("/SRS") && !path.contains("..") {
         return Ok(true);
     }
     // 否则进行鉴权
@@ -26,10 +26,10 @@ pub async fn auth(stream: &mut TcpStream, req: &Request<'_, '_>) -> Result<bool,
         }
     }
     // 鉴权失败
-    let body = "NOT Authoried";
+    let body = "<!DOCTYPE html><html><head><meta http-equiv=\"refresh\" content=\"4; url=/srs/LoginInterface.html\"><title>NOT Authoried</title></head><body><h1>NOT Authoried</h1></body></html>";
     let response = format!(
         "HTTP/1.1 401 NOT Authoried\r\n\
-            Content-Type: text/plain\r\n\
+            Content-Type: text/html\r\n\
             Content-Length: {}\r\n\
             Connection: close\r\n\r\n\
             {}",

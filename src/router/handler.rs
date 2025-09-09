@@ -71,13 +71,11 @@ impl Handler {
             // "GET" => {}
             "POST" => {
                 if let Ok(s) = str::from_utf8(&body) {
-                    println!("post: {}", s);
                     let post = s.split('&').collect::<Vec<_>>();
                     // 实际认证使用另一个简易redis项目, 这里放简单示例
                     if post.len() == 3 {
-                        println!("{:?}  {:?}",(&post[0][5..]).as_bytes(),&post[1][9..].as_bytes());
                         if &post[0][5..] == "usr" && &post[1][9..] == "pwd" {
-                            println!("验证通过");
+                            println!("验证通过,来自 {}",stream.peer_addr()?);
                             let notice = "success";
                             let response = format!(
                                 "HTTP/1.1 200 OK\r\n\
